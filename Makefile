@@ -18,8 +18,8 @@ install:
 	$(LN) $(LIBDIR)/$(TARGET_FULL) $(LIBDIR)/$(TARGET)
 	echo $(LIBDIR) > /etc/ld.so.conf.d/$(NAME).conf && ldconfig
 	for file in $(LIBHEADERS) ; do \
-        $(INSTALL) -m 644 $(SRCDIR)/$$file $(INCDIR) ; \
-    done
+		$(INSTALL) -m 644 $(SRCDIR)/$$file $(INCDIR) ; \
+	done
 
 clean:
 	@make -C $(SRCDIR) clean
@@ -34,8 +34,8 @@ uninstall:
 	$(RM) $(LIBDIR)/$(TARGET)
 	$(RM) /etc/ld.so.conf.d/$(NAME).conf
 	for file in $(LIBHEADERS) ; do \
-        $(RM) $(INCDIR)/$$file ; \
-    done
+		$(RM) $(INCDIR)/$$file ; \
+	done
 
 testprog: 
 	@make -C $(TESTDIR)

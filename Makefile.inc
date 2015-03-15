@@ -14,29 +14,29 @@ VERSION_MINOR = 0
 VERSION_PATCH = 0
 
 ifeq ($(OS),Windows_NT)
-    LIBTARGET = $(LIBNAME).dll
-    CFLAGS += -DWIN32
-    PREFIX = C:/dwtct
-    LIBDIR = $(PREFIX)/dll
-    INCDIR = $(PREFIX)/inc
+	LIBTARGET = $(LIBNAME).dll
+	CFLAGS += -DWIN32
+	PREFIX = C:/dwtct
+	LIBDIR = $(PREFIX)/dll
+	INCDIR = $(PREFIX)/inc
 else
-    UNAME_S := $(shell uname -s)
-    ifeq ($(UNAME_S),Linux)
-        LIBTARGET = $(LIBNAME).so
-        CFLAGS += -DLINUX
-        SONAME = -Wl,-soname,$(LIBTARGET).$(VERSION_MAJOR)
-        PREFIX = /usr/local
-        LIBDIR = $(PREFIX)/lib
-        INCDIR = $(PREFIX)/include
-    endif
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		LIBTARGET = $(LIBNAME).so
+		CFLAGS += -DLINUX
+		SONAME = -Wl,-soname,$(LIBTARGET).$(VERSION_MAJOR)
+		PREFIX = /usr/local
+		LIBDIR = $(PREFIX)/lib
+		INCDIR = $(PREFIX)/include
+	endif
 endif
 
 # default is release mode
 debug ?= 0
 ifeq ($(debug), 0)
-    CFLAGS += -O2
+	CFLAGS += -O2
 else
-    CFLAGS += -g
-    LDFLAGS += -g
+	CFLAGS += -g
+	LDFLAGS += -g
 endif
 
