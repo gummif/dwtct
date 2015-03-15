@@ -3,7 +3,8 @@ NAME = dwtct
 LIBNAME = lib$(NAME)
 SRCDIR = src
 TESTDIR = test
-CC = gcc
+#CC = gcc -std=c99
+CC = g++ -std=c++0x
 RM = rm -f
 INSTALL = install
 LN = ln -s -f
@@ -34,9 +35,9 @@ endif
 # default is release mode
 debug ?= 0
 ifeq ($(debug), 0)
-	CFLAGS += -O2
+	CFLAGS += -O2 -DNDEBUG
 else
-	CFLAGS += -g
+	CFLAGS += -Og -g
 	LDFLAGS += -g
 endif
 

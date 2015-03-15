@@ -1,14 +1,22 @@
 
 include ../Makefile.inc
 
+threaded ?= 1
+ifeq ($(threaded), 0)
+	#
+else
+	CFLAGS += -fopenmp
+	LDFLAGS += -lgomp
+endif
 
-CFLAGS += -std=c99 -Wall -Wextra -fPIC -DDWTCT_EXPORT
+
+CFLAGS += -Wall -Wextra -fPIC -DDWTCT_EXPORT -funroll-loops -funsafe-loop-optimizations
 LDFLAGS += -shared -fPIC -lc $(SONAME)
 
 TARGET = $(LIBTARGET)
 LIBHEADERS = dwtct.h dwtctconf.h
-SRC = dwtct.c
-OBJ = $(SRC:.c=.o)
+SRC = dwtct.cpp
+OBJ = $(SRC:.cpp=.o)
 
 
 .PHONE: all clean
@@ -21,8 +29,11 @@ $(TARGET): $(OBJ)
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+%.o: %.cpp
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 clean:
 	$(RM) $(OBJ) $(TARGET)
 
 # deps
-dwtct.o: dwtct.c $(LIBHEADERS)
+dwtct.o: dwtct.cpp $(LIBHEADERS)

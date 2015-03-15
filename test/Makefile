@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-CFLAGS += -Wall -Wextra -I$(INCDIR)
+CFLAGS += -Wall -Wextra -I$(INCDIR) 
 LDFLAGS += -L$(LIBDIR) -l$(NAME)
 
 TARGET = test$(NAME)

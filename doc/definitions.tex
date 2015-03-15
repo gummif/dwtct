@@ -1,0 +1,30 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[a4paper]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{enumerate}
+\usepackage{hyperref}
+\newcommand{\subsc}[1]{[#1]}
+
+\title{DWTCT function definition} 
+\author{...}
+
+\begin{document}
+\maketitle
+
+\section{Filter transforms}
+
+The downsampling filter transform computes
+\begin{equation}
+	c\subsc{i} = \sum_{j=0}^{n-1} f\subsc{j} \; x\subsc{2i + j - s} 
+\end{equation}
+where $x$ is the input signal, $f$ is the filter, $c$ are the output coefficients, $n$ is the length of $f$, $s\geq0$ is the shift of $x$,
+
+
+\end{document}
