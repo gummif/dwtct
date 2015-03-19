@@ -1,3 +1,11 @@
 *.o
 *.d
 *.so
+
+*.jl
+*.out
+*.log
+*.log
+*.gz
+*.pdf
+*.aux
