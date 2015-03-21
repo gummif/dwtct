@@ -66,9 +66,6 @@ DWTCT_EI int dwtct_compiled_with_openmp(void);
 
 
 
-DWTCT_EI void testfunc(double d, int *a);
-
-
 #ifdef __cplusplus
 }
 #endif

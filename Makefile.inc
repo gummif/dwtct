@@ -3,8 +3,8 @@ NAME = dwtct
 LIBNAME = lib$(NAME)
 SRCDIR = src
 TESTDIR = test
-#CC = gcc -std=c99
-CC = g++ -std=c++0x
+CC = gcc -std=c99
+CXX = g++ -std=c++0x
 RM = rm -f
 INSTALL = install
 LN = ln -s -f

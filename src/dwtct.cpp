@@ -63,27 +63,6 @@ DWTCT_EI int dwtct_compiled_with_openmp(void)
     #endif
 }
 
-DWTCT_EI void testfunc(double d, int *a)
-{
-    int p = (int)d*5;
-    *a = p;
-    #ifdef DWTCT_EXPORT
-    printf("exported\n");
-    #else
-    printf("not exported\n");
-    #endif
-    /*
-    double *foo = malloc(sizeof(double)*50);
-    printf("malloc %p\n", foo);
-    if (foo)
-    {
-        printf("val %f\n", foo[30]);
-        free(foo);
-    }*/
-}
-
-
-
 
 // split the range [0, x_len>>1) into 3 parts where the indeces in the middle range
 // are in [(x_shift + 1)>>1, (x_len + x_shift - f_len + 1)>>1)
