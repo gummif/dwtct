@@ -71,7 +71,7 @@ static void split_down_range(const int x_len, const int x_shift, const int f_len
                     int r_start[3], int r_end[3])
 {
     assert(x_len > 0 && x_len%2 == 0);
-    assert(x_shift => 0);
+    assert(x_shift >= 0);
     assert(f_len > 0);
 
     const int r1 = (x_shift + 1)>>1;

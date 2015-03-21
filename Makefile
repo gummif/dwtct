@@ -1,6 +1,9 @@
 # make && sudo make install && make testprog && make runtest
 include Makefile.inc
 
+threaded ?= 1
+export threaded
+
 TARGET = $(LIBTARGET)
 TARGET_FULL = $(TARGET).$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)
 LIBHEADERS = dwtct.h dwtctconf.h
