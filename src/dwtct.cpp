@@ -10,15 +10,10 @@
 // 0 0 0 0|0 0|0 0 0 0
 const uint32_t DWTCT_BOUNDARY_MASK    = 0x000f;
 const uint32_t DWTCT_THREADED_MASK    = 0x0030;
-const uint32_t DWTCT_NUM_THREADS_MASK = 0x03c0;
 // flags
 const uint32_t DWTCT_PERIODIC = 0x0000;
 const uint32_t DWTCT_SERIAL   = 0x0000;
 const uint32_t DWTCT_OPENMP   = 0x0010;
-const uint32_t DWTCT_1_THREAD = 0x0000;
-const uint32_t DWTCT_2_THREAD = 0x0040;
-const uint32_t DWTCT_4_THREAD = 0x0080;
-const uint32_t DWTCT_8_THREAD = 0x00c0;
 
 
 
@@ -198,6 +193,12 @@ static void filter_hardcoded_inbounds_loops(Type *coef, const Type *x,
     }
 }
 
+#ifdef _OPENMP
+#define __PARALLEL_LOOP _Pragma("omp parallel for schedule(static)")
+#else
+#define __PARALLEL_LOOP
+#endif
+
 template <typename Type>
 static void filter_hardcoded_inbounds_loops_omp(Type *coef, const Type *x, 
                                         const Type *filter, const int filt_len, 
@@ -207,9 +208,7 @@ static void filter_hardcoded_inbounds_loops_omp(Type *coef, const Type *x,
     switch (filt_len)
     {
         case 2:
-            #ifdef _OPENMP
-            #pragma omp parallel for schedule(static)
-            #endif
+            __PARALLEL_LOOP
             for (int i = i_start; i < i_end; ++i)
             {
                 int ind = (i<<1) - x_shift;
@@ -217,9 +216,7 @@ static void filter_hardcoded_inbounds_loops_omp(Type *coef, const Type *x,
             }
             break;
         case 4:
-            #ifdef _OPENMP
-            #pragma omp parallel for schedule(static)
-            #endif
+            __PARALLEL_LOOP
             for (int i = i_start; i < i_end; ++i)
             {
                 int ind = (i<<1) - x_shift;
@@ -228,9 +225,7 @@ static void filter_hardcoded_inbounds_loops_omp(Type *coef, const Type *x,
             }
             break;
         case 6:
-            #ifdef _OPENMP
-            #pragma omp parallel for schedule(static)
-            #endif
+            __PARALLEL_LOOP
             for (int i = i_start; i < i_end; ++i)
             {
                 int ind = (i<<1) - x_shift;
@@ -240,9 +235,7 @@ static void filter_hardcoded_inbounds_loops_omp(Type *coef, const Type *x,
             }
             break;
         case 8:
-            #ifdef _OPENMP
-            #pragma omp parallel for schedule(static)
-            #endif
+            __PARALLEL_LOOP
             for (int i = i_start; i < i_end; ++i)
             {
                 int ind = (i<<1) - x_shift;
@@ -253,9 +246,7 @@ static void filter_hardcoded_inbounds_loops_omp(Type *coef, const Type *x,
             }
             break;
         default:
-            #ifdef _OPENMP
-            #pragma omp parallel for schedule(static)
-            #endif
+            __PARALLEL_LOOP
             for (int i = i_start; i < i_end; ++i)
                 coef[i] = filter_main_loop_reg(x, filter, filt_len, (i<<1) - x_shift);
             break;
@@ -313,9 +304,7 @@ int dwtct_filtdown(Type *coef, const size_t n_coef,
     {
         if (no_opt)
         {
-            #ifdef _OPENMP
-            #pragma omp parallel for schedule(static)
-            #endif
+            __PARALLEL_LOOP
             for (int i = i_start; i < i_end; ++i)
                 coef[i] = filter_main_loop_reg(x, filter, filt_len, (i<<1) - x_shift);
         }
