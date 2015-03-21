@@ -7,7 +7,7 @@ DWTCT (libdwtct) is a C library (written in C++) that provides the core transfor
 
 Periodic downsampling filter:
 
-![downfilter](http://gummif.github.io/dwtct/master/filter_down.png)
+![downfilter](http://gummif.github.io/dwtct/filter_down.png)
 
 Periodic upsampling filter:
 *not ready*
