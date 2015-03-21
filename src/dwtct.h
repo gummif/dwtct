@@ -3,6 +3,7 @@
 #define DWTCT_H
 
 #include "dwtctconf.h"
+#include "inttypes.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,11 +12,25 @@ extern "C" {
 typedef struct d_dwtct_filt_param {
     const void      *filter;    // the filter
     size_t          n_filt;     // length of filter
-    double          *tmpfilt;   // tmp filter storage
-    int             x_shift;    // shift of x (non-positive)
-    int             s_shift;    // shift down/up sampling (0 or 1)
-    int             threaded;   // use OpenMP
+    unsigned int    x_shift;    // shift of x
+    uint32_t        flags;      // default: periodic, serial, 1 thread (not used)
 } dwtct_filt_param;
+
+// masks and flags
+const uint32_t DWTCT_DEFAULT_FLAGS = 0;
+
+extern const uint32_t DWTCT_BOUNDARY_MASK;
+extern const uint32_t DWTCT_PERIODIC;
+
+extern const uint32_t DWTCT_THREADED_MASK;
+extern const uint32_t DWTCT_SERIAL;
+extern const uint32_t DWTCT_OPENMP;
+
+extern const uint32_t DWTCT_NUM_THREADS_MASK;
+extern const uint32_t DWTCT_1_THREAD;
+extern const uint32_t DWTCT_2_THREAD;
+extern const uint32_t DWTCT_4_THREAD;
+extern const uint32_t DWTCT_8_THREAD;
 
 enum dwtct_error_code {
     DWTCT_SUCCESS = 0,
@@ -23,7 +38,6 @@ enum dwtct_error_code {
     DWTCT_E_ARRAY_SIZE,
     DWTCT_E_NULL_PTR
 };
-
 
 // API
 

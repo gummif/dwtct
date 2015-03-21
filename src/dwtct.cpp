@@ -7,6 +7,21 @@
 #include <omp.h>
 #endif
 
+// 0 0 0 0|0 0|0 0 0 0
+const uint32_t DWTCT_BOUNDARY_MASK    = 0x000f;
+const uint32_t DWTCT_THREADED_MASK    = 0x0030;
+const uint32_t DWTCT_NUM_THREADS_MASK = 0x03c0;
+// flags
+const uint32_t DWTCT_PERIODIC = 0x0000;
+const uint32_t DWTCT_SERIAL   = 0x0000;
+const uint32_t DWTCT_OPENMP   = 0x0010;
+const uint32_t DWTCT_1_THREAD = 0x0000;
+const uint32_t DWTCT_2_THREAD = 0x0040;
+const uint32_t DWTCT_4_THREAD = 0x0080;
+const uint32_t DWTCT_8_THREAD = 0x00c0;
+
+
+
 template <typename Type>
 static int dwtct_filtdown(Type *coef, const size_t n_coef, 
                     const Type *x, const size_t n_x, 
@@ -108,7 +123,8 @@ static void split_down_range(const int x_len, const int x_shift, const int f_len
 }
 
 template <typename Type>
-static inline Type filter_main_loop_reg(const Type *x, const Type *f, const int f_len, const int shift)
+static inline Type filter_main_loop_reg(const Type *x, const Type *f, 
+                                        const int f_len, const int shift)
 {
     Type sum = 0;
 
@@ -120,7 +136,7 @@ static inline Type filter_main_loop_reg(const Type *x, const Type *f, const int 
 
 template <typename Type>
 static inline Type filter_main_loop_per_bounds(const Type *x, const Type *f, const int f_len, 
-                                const int shift, const int length)
+                                                const int shift, const int length)
 {
     Type sum = 0;
 
@@ -130,23 +146,139 @@ static inline Type filter_main_loop_per_bounds(const Type *x, const Type *f, con
     return sum;
 }
 
+
+
+// hard coded loops for some common filter lengths
+template <typename Type>
+static void filter_hardcoded_inbounds_loops(Type *coef, const Type *x, 
+                                    const Type *filter, const int filt_len, 
+                                    const int i_start, const int i_end, 
+                                    const int x_shift)
+{
+    switch (filt_len)
+    {
+        case 2:
+            for (int i = i_start; i < i_end; ++i)
+            {
+                int ind = (i<<1) - x_shift;
+                coef[i] = filter[0] * x[ind] + filter[1] * x[ind + 1];
+            }
+            break;
+        case 4:
+            for (int i = i_start; i < i_end; ++i)
+            {
+                int ind = (i<<1) - x_shift;
+                coef[i] =   filter[0] * x[ind    ] + filter[1] * x[ind + 1] + 
+                            filter[2] * x[ind + 2] + filter[3] * x[ind + 3];
+            }
+            break;
+        case 6:
+            for (int i = i_start; i < i_end; ++i)
+            {
+                int ind = (i<<1) - x_shift;
+                coef[i] =   filter[0] * x[ind    ] + filter[1] * x[ind + 1] + 
+                            filter[2] * x[ind + 2] + filter[3] * x[ind + 3] + 
+                            filter[4] * x[ind + 4] + filter[5] * x[ind + 5];
+            }
+            break;
+        case 8:
+            for (int i = i_start; i < i_end; ++i)
+            {
+                int ind = (i<<1) - x_shift;
+                coef[i] =   filter[0] * x[ind    ] + filter[1] * x[ind + 1] + 
+                            filter[2] * x[ind + 2] + filter[3] * x[ind + 3] + 
+                            filter[4] * x[ind + 4] + filter[5] * x[ind + 5] + 
+                            filter[6] * x[ind + 6] + filter[7] * x[ind + 7];
+            }
+            break;
+        default:
+            for (int i = i_start; i < i_end; ++i)
+                coef[i] = filter_main_loop_reg(x, filter, filt_len, (i<<1) - x_shift);
+            break;
+    }
+}
+
+template <typename Type>
+static void filter_hardcoded_inbounds_loops_omp(Type *coef, const Type *x, 
+                                        const Type *filter, const int filt_len, 
+                                        const int i_start, const int i_end, 
+                                        const int x_shift)
+{
+    switch (filt_len)
+    {
+        case 2:
+            #ifdef _OPENMP
+            #pragma omp parallel for schedule(static)
+            #endif
+            for (int i = i_start; i < i_end; ++i)
+            {
+                int ind = (i<<1) - x_shift;
+                coef[i] = filter[0] * x[ind] + filter[1] * x[ind + 1];
+            }
+            break;
+        case 4:
+            #ifdef _OPENMP
+            #pragma omp parallel for schedule(static)
+            #endif
+            for (int i = i_start; i < i_end; ++i)
+            {
+                int ind = (i<<1) - x_shift;
+                coef[i] =   filter[0] * x[ind    ] + filter[1] * x[ind + 1] + 
+                            filter[2] * x[ind + 2] + filter[3] * x[ind + 3];
+            }
+            break;
+        case 6:
+            #ifdef _OPENMP
+            #pragma omp parallel for schedule(static)
+            #endif
+            for (int i = i_start; i < i_end; ++i)
+            {
+                int ind = (i<<1) - x_shift;
+                coef[i] =   filter[0] * x[ind    ] + filter[1] * x[ind + 1] + 
+                            filter[2] * x[ind + 2] + filter[3] * x[ind + 3] + 
+                            filter[4] * x[ind + 4] + filter[5] * x[ind + 5];
+            }
+            break;
+        case 8:
+            #ifdef _OPENMP
+            #pragma omp parallel for schedule(static)
+            #endif
+            for (int i = i_start; i < i_end; ++i)
+            {
+                int ind = (i<<1) - x_shift;
+                coef[i] =   filter[0] * x[ind    ] + filter[1] * x[ind + 1] + 
+                            filter[2] * x[ind + 2] + filter[3] * x[ind + 3] + 
+                            filter[4] * x[ind + 4] + filter[5] * x[ind + 5] + 
+                            filter[6] * x[ind + 6] + filter[7] * x[ind + 7];
+            }
+            break;
+        default:
+            #ifdef _OPENMP
+            #pragma omp parallel for schedule(static)
+            #endif
+            for (int i = i_start; i < i_end; ++i)
+                coef[i] = filter_main_loop_reg(x, filter, filt_len, (i<<1) - x_shift);
+            break;
+    }
+}
+
 template <typename Type>
 int dwtct_filtdown(Type *coef, const size_t n_coef, 
                     const Type *x, const size_t n_x, 
                     const dwtct_filt_param *f_par)
 {
-    if (coef == NULL || x == NULL || f_par == NULL || 
-        f_par->filter == NULL || f_par->tmpfilt == NULL)
+    if (coef == NULL || x == NULL || f_par == NULL || f_par->filter == NULL)
         return DWTCT_E_NULL_PTR;
     if (n_coef*2 < n_x || n_x % 2 != 0 || f_par->n_filt < 2)
         return DWTCT_E_ARRAY_SIZE;
-    if (f_par->x_shift < 0)
+    if (f_par->x_shift < 0 || (f_par->flags & DWTCT_BOUNDARY_MASK) != DWTCT_PERIODIC)
         return DWTCT_E_INVALID_PARAM;
 
     const int x_len = n_x;
     const int x_shift = f_par->x_shift;
     const Type *filter = (const Type *)f_par->filter;
     const int filt_len = f_par->n_filt;
+    const int threaded = (f_par->flags & DWTCT_THREADED_MASK) == DWTCT_OPENMP;
 
     int r_start[3];
     int r_end[3];
@@ -159,126 +291,37 @@ int dwtct_filtdown(Type *coef, const size_t n_coef,
     i_start = r_start[0];
     i_end = r_end[0];
     for (int i = i_start; i < i_end; ++i)
-    {
         coef[i] = filter_main_loop_per_bounds(x, filter, filt_len, (i<<1) - x_shift, x_len);
-    }
 
     // the main inbounds loop where most of the time is spent
     i_start = r_start[1];
     i_end = r_end[1];
-    if (!f_par->threaded)
+    const int no_opt = (x_len*filt_len < 400 || filt_len%2 == 1 || filt_len > 8);
+    if (!threaded)
     {
-        // hard coded loops for some common filter lengths
-        switch (filt_len)
+        if (no_opt)
         {
-        case 2:
             for (int i = i_start; i < i_end; ++i)
-            {
-                int ind = (i<<1) - x_shift;
-                coef[i] = filter[0] * x[ind] + filter[1] * x[ind + 1];
-            }
-            break;
-        case 4:
-            for (int i = i_start; i < i_end; ++i)
-            {
-                int ind = (i<<1) - x_shift;
-                coef[i] =   filter[0] * x[ind    ] + filter[1] * x[ind + 1] + 
-                            filter[2] * x[ind + 2] + filter[3] * x[ind + 3];
-            }
-            break;
-        case 6:
-            for (int i = i_start; i < i_end; ++i)
-            {
-                int ind = (i<<1) - x_shift;
-                coef[i] =   filter[0] * x[ind    ] + filter[1] * x[ind + 1] + 
-                            filter[2] * x[ind + 2] + filter[3] * x[ind + 3] + 
-                            filter[4] * x[ind + 4] + filter[5] * x[ind + 5];
-            }
-            break;
-        case 8:
-            for (int i = i_start; i < i_end; ++i)
-            {
-                int ind = (i<<1) - x_shift;
-                coef[i] =   filter[0] * x[ind    ] + filter[1] * x[ind + 1] + 
-                            filter[2] * x[ind + 2] + filter[3] * x[ind + 3] + 
-                            filter[4] * x[ind + 4] + filter[5] * x[ind + 5] + 
-                            filter[6] * x[ind + 6] + filter[7] * x[ind + 7];
-            }
-            break;
-        default:
-            for (int i = i_start; i < i_end; ++i)
-            {
                 coef[i] = filter_main_loop_reg(x, filter, filt_len, (i<<1) - x_shift);
-            }
-            break;
+        }
+        else // try optimized code
+        {
+            filter_hardcoded_inbounds_loops(coef, x, filter, filt_len, i_start, i_end, x_shift);
         }
     }
     else
     {
-/*#ifdef _OPENMP
-        #pragma omp parallel for schedule(static)
-        #endif
-        for (int i = i_start; i < i_end; ++i)
+        if (no_opt)
         {
-            coef[i] = filter_main_loop_reg(x, filter, filt_len, (i<<1) - x_shift);
-        }*/
-        switch (filt_len)
-        {
-        case 2:
             #ifdef _OPENMP
             #pragma omp parallel for schedule(static)
             #endif
             for (int i = i_start; i < i_end; ++i)
-            {
-                int ind = (i<<1) - x_shift;
-                coef[i] = filter[0] * x[ind] + filter[1] * x[ind + 1];
-            }
-            break;
-        case 4:
-            #ifdef _OPENMP
-            #pragma omp parallel for schedule(static)
-            #endif
-            for (int i = i_start; i < i_end; ++i)
-            {
-                int ind = (i<<1) - x_shift;
-                coef[i] =   filter[0] * x[ind    ] + filter[1] * x[ind + 1] + 
-                            filter[2] * x[ind + 2] + filter[3] * x[ind + 3];
-            }
-            break;
-        case 6:
-            #ifdef _OPENMP
-            #pragma omp parallel for schedule(static)
-            #endif
-            for (int i = i_start; i < i_end; ++i)
-            {
-                int ind = (i<<1) - x_shift;
-                coef[i] =   filter[0] * x[ind    ] + filter[1] * x[ind + 1] + 
-                            filter[2] * x[ind + 2] + filter[3] * x[ind + 3] + 
-                            filter[4] * x[ind + 4] + filter[5] * x[ind + 5];
-            }
-            break;
-        case 8:
-            #ifdef _OPENMP
-            #pragma omp parallel for schedule(static)
-            #endif
-            for (int i = i_start; i < i_end; ++i)
-            {
-                int ind = (i<<1) - x_shift;
-                coef[i] =   filter[0] * x[ind    ] + filter[1] * x[ind + 1] + 
-                            filter[2] * x[ind + 2] + filter[3] * x[ind + 3] + 
-                            filter[4] * x[ind + 4] + filter[5] * x[ind + 5] + 
-                            filter[6] * x[ind + 6] + filter[7] * x[ind + 7];
-            }
-            break;
-        default:
-            #ifdef _OPENMP
-            #pragma omp parallel for schedule(static)
-            #endif
-            for (int i = i_start; i < i_end; ++i)
-            {
                 coef[i] = filter_main_loop_reg(x, filter, filt_len, (i<<1) - x_shift);
-            }
-            break;
+        }
+        else // try optimized code
+        {
+            filter_hardcoded_inbounds_loops_omp(coef, x, filter, filt_len, i_start, i_end, x_shift);
         }
     }
 
@@ -286,9 +329,7 @@ int dwtct_filtdown(Type *coef, const size_t n_coef,
     i_start = r_start[2];
     i_end = r_end[2];
     for (int i = i_start; i < i_end; ++i)
-    {
         coef[i] = filter_main_loop_per_bounds(x, filter, filt_len, (i<<1) - x_shift, x_len);
-    }
 
     return DWTCT_SUCCESS;
 }
