@@ -12,9 +12,9 @@ BIBTEX=bibtex
 PS2PDF=ps2pdf
 SCCSS=Success
 
-.PHONE: all latex pdflatex bibtex ps2pdf clean
+.PHONE: all latex pdflatex doxygen ps2pdf clean
 
-all: latex
+all: pdflatex doxygen
 
 latex:
 	@$(LATEX) $(LATEXFLAGS) $(SRC) && $(DVIPS) -q -o $(OUT).ps $(OUT).dvi && echo Success
@@ -22,11 +22,12 @@ latex:
 pdflatex:
 	$(PDFLATEX) $(PDFLATEXFLAGS) $(SRC)
 
-bibtex:
-	$(BIBTEX) $(OUT).aux
+doxygen:
+	doxygen Doxyfile
 
 ps2pdf:
 	$(PS2PDF) $(OUT).ps
 
 clean:
 	rm -f $(OUT).log $(OUT).pdf $(OUT).dvi $(OUT).ps $(OUT).aux $(OUT).out $(OUT).synctex.gz
+	rm -rf html

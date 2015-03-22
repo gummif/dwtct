@@ -20,7 +20,7 @@ Periodic lifting scheme:
 
 ## Install
 
-From the `dwtct`directory execute `make` and `sudo make install`. A test program can be compiled with `make testprog` and run with `make runtest`.
+From the `dwtct`directory execute `make` and `sudo make install`. A test program can be compiled with `make testprog` and run with `make runtest`. Run `make` in the `doc` directory to generate the documentation.
 
 
 ## Requires
