@@ -83,7 +83,6 @@ DWTCT_EI int dwtct_get_num_threads(void);
 DWTCT_EI int dwtct_compiled_with_openmp(void);
 
 
-//! sss
 #ifdef __cplusplus
 }
 #endif
